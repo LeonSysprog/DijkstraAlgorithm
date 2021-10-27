@@ -1,7 +1,6 @@
 #include <iostream>
-#include <climits>
-#include <queue>
 #include <list>
+#include "FibonacciHeap.h"
 
 #define V 8
 
@@ -10,28 +9,6 @@ using namespace std;
 struct AdjListNode {
     int endPoint, weight;
     AdjListNode(int p, int w) : endPoint(p), weight(w) {}
-};
-
-struct Comparator {
-    bool operator() (pair<int, int> a, pair<int, int> b) {
-        return a.first > b.first;
-    }
-};
-
-class MinHeap : public priority_queue<pair<int, int>, vector<pair<int, int>>, Comparator> {
-    public:
-        typedef typename priority_queue<pair<int, int>, vector<pair<int, int>>, Comparator>::container_type::iterator iterator;
-        iterator find(int val) {
-            auto first = this->c.begin();
-            auto last = this->c.end();
-            while (first != last) {
-                if (first->second == val)
-                    return first;
-                ++first;
-            }
-
-            return last;
-        }
 };
 
 // A utility function used to print the solution
@@ -56,16 +33,16 @@ class Graph {
         }
 
         void dijkstra(int src) {
-            MinHeap *minHeap = new MinHeap();
+            FibonacciHeap *fibHeap = new FibonacciHeap();
             int dist[V];
 
             for (int v = 0; v < V; ++v) {
                 if (v == src) {
-                    minHeap->push(pair<int, int>(0, v));
+                    fibHeap->insert(0, v); //<0, v>
                     dist[v] = 0;
                 }
                 else {
-                    minHeap->push(pair<int, int>(INT_MAX, v));
+                    fibHeap->insert(INT_MAX, v);  //<INT_MAX, v>
                     dist[v] = INT_MAX;
                 }
             }
@@ -73,8 +50,8 @@ class Graph {
             for (int count = 0; count < V; ++count) {
 
                 // min distance
-                int u = minHeap->top().second;
-                minHeap->pop();
+                int u = fibHeap->getMinKey();
+                fibHeap->removeMin();
  
                 auto pCrawl = array[u].begin();
                 while (pCrawl != array[u].end()) {
@@ -83,7 +60,7 @@ class Graph {
                     // update dist
                     if (dist[u] != INT_MAX && pCrawl->weight + dist[u] < dist[v]) {
                         dist[v] = dist[u] + pCrawl->weight;
-                        minHeap->find(v)->first = dist[v];
+                        fibHeap->find(fibHeap->getMinNode(), v)->weight = dist[v];
                     }
 
                     ++pCrawl;
@@ -92,10 +69,9 @@ class Graph {
 
             printArr(dist, V);
         } 
-};   
- 
-int main()
-{
+};
+
+int main() {
     // create the graph given in above fugure
     Graph* graph = new Graph();
     graph->addEdge(0, 1, 4);
